@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: user-service
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  datasource:
+    url: jdbc:mysql://46.101.114.176:3306/TOPTANCICEK
+    username: toptancicek
+    password: Toptancicek123+
+    #url: jdbc:mysql://localhost:3306/TENNISCLUB
+    #username: reservation
+    #password: Reservation123+
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      auto-commit: true
+      connectionTimeout: 30000
+      idleTimeout: 30000
+      maxLifetime: 600000
+      maximumPoolSize: 3
+      minimumIdle: 5
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/test/changelog-master.yml
+
+server:
+  port: 8089
+
+jwt:
+  secret: toptancicek
+
+feign:
+  communication:
+    name: communication-service
+    url: http://165.232.76.29:8088
