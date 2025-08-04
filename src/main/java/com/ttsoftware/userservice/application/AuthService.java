@@ -10,7 +10,6 @@ import com.ttsoftware.userservice.domain.entity.User;
 import com.ttsoftware.userservice.infrastructure.UserRepository;
 import com.ttsoftware.userservice.model.JwtResponse;
 import com.ttsoftware.userservice.model.SignupResponse;
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -39,16 +38,12 @@ public class AuthService {
     public ResponseEntity<JwtResponse> loginService(LoginDto loginDto) {
         try {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-            User user = userRepository.findByUsernameOrEmailAndChannelId(loginDto.getUsernameOrEmail(), loginDto.getUsernameOrEmail(),loginDto.getChannelId()).orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + loginDto.getUsernameOrEmail()));
+            User user = userRepository.findByEmail(loginDto.getEmail()).orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + loginDto.getEmail()));
             passwordEncoder.matches(loginDto.getPassword(), user.getPassword());
-
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsernameOrEmail(), loginDto.getPassword()));
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            final UserDetails userDetails = customUserDetailsService.loadUserByUsername(loginDto.getUsernameOrEmail());
-
+            final UserDetails userDetails = customUserDetailsService.loadUserByUsername(loginDto.getEmail());
             final String token = jwtTokenUtil.generateToken(userDetails);
-
             return ResponseEntity.ok(new JwtResponse(token));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new JwtResponse(e.getMessage()));
@@ -60,34 +55,25 @@ public class AuthService {
         User user = new User();
         SignupResponse signupResponse = new SignupResponse();
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        EmailDtoWithAttachment emailDtoWithAttachment = new EmailDtoWithAttachment();
+        //EmailDtoWithAttachment emailDtoWithAttachment = new EmailDtoWithAttachment();
         try {
             String encodedPassword = passwordEncoder.encode(signupDto.getPassword().trim());
             user.setEmail(signupDto.getEmail());
             user.setPassword(encodedPassword);
-            user.setUsername(signupDto.getUsername());
             user.setName(signupDto.getName());
             user.setSurname(signupDto.getSurname());
-            user.setChannelId(signupDto.getChannelId());
             userRepository.save(user);
 
-            emailDtoWithAttachment.setIsHtml(Boolean.TRUE);
-            emailDtoWithAttachment.setRecipient(signupDto.getEmail());
-            emailDtoWithAttachment.setUserName(signupDto.getUsername());
-            emailDtoWithAttachment.setPassword(signupDto.getPassword().trim());
-            if (signupDto.getChannelId() == 1) {
-                emailDtoWithAttachment.setSubject("EcoQRCode İle Yeşil Dünyaya Hoşgeldiniz");
-                emailDtoWithAttachment.setMsgBody("EcoQRCode ile daha yeşil bir dünyaya ilk adımı atmış bulunuyorsunuz." +
-                        "Kullanıcı adı ve şifreniz ile sisteme giriş sağlayarak görünmesini istediğiniz tüm bilgilerin yanı sıra" +
-                        "hakkınızda bilgiler vererek dijital kartvizitinizi oluşturabilirsiniz.");
-            } else {
-                emailDtoWithAttachment.setSubject("Pruvatag Dünyasına Hoşgeldiniz");
-                emailDtoWithAttachment.setMsgBody("Pruvatag ile daha yeşil bir dünyaya ilk adımı atmış bulunuyorsunuz." +
-                        "Kullanıcı adı ve şifreniz ile sisteme giriş sağlayarak görünmesini istediğiniz tüm bilgilerin yanı sıra" +
-                        "hakkınızda bilgiler vererek dijital kartvizitinizi oluşturabilirsiniz.");
-            }
-
-            communicationClient.sendMailWithAttachment(emailDtoWithAttachment);
+//            emailDtoWithAttachment.setIsHtml(Boolean.TRUE);
+//            emailDtoWithAttachment.setRecipient(signupDto.getEmail());
+//            emailDtoWithAttachment.setPassword(signupDto.getPassword().trim());
+//            emailDtoWithAttachment.setSubject("Toptan Çiçek Dünyasına Hoşgeldiniz");
+//            emailDtoWithAttachment.setMsgBody("Toptan Çiçek Dünyasına Hoşgeldiniz. " +
+//                    "Kullanıcı Adınız: " + signupDto.getEmail() + "\n" +
+//                    "Parolanız: " + signupDto.getPassword().trim() + "\n" +
+//                    "Sisteme giriş yapabilirsiniz.");
+//
+//            communicationClient.sendMailWithAttachment(emailDtoWithAttachment);
 
             signupResponse.setStatus(1);
             signupResponse.setMessage("User signup is done.");
@@ -163,5 +149,4 @@ public class AuthService {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
 }

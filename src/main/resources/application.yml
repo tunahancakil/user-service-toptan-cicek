@@ -1,6 +1,6 @@
 spring:
   application:
-    name: user-service
+    name: user-service-toptan-cicek
   jpa:
     hibernate:
       ddl-auto: update
