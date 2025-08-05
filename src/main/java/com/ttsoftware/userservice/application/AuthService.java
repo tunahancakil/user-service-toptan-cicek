@@ -55,26 +55,22 @@ public class AuthService {
         User user = new User();
         SignupResponse signupResponse = new SignupResponse();
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        //EmailDtoWithAttachment emailDtoWithAttachment = new EmailDtoWithAttachment();
         try {
             String encodedPassword = passwordEncoder.encode(signupDto.getPassword().trim());
             user.setEmail(signupDto.getEmail());
             user.setPassword(encodedPassword);
             user.setName(signupDto.getName());
             user.setSurname(signupDto.getSurname());
+            user.setPhone(signupDto.getPhone());
+            user.setPhoneNumber(signupDto.getPhoneNumber());
+            user.setCountry(signupDto.getCountry());
+            user.setCity(signupDto.getCity());
+            user.setAddress(signupDto.getAddress());
+            user.setDealerName(signupDto.getDealerName());
+            user.setTaxNumber(signupDto.getTaxNumber());
+            user.setTaxOffice(signupDto.getTaxOffice());
+            user.setDealer(signupDto.isDealer());
             userRepository.save(user);
-
-//            emailDtoWithAttachment.setIsHtml(Boolean.TRUE);
-//            emailDtoWithAttachment.setRecipient(signupDto.getEmail());
-//            emailDtoWithAttachment.setPassword(signupDto.getPassword().trim());
-//            emailDtoWithAttachment.setSubject("Toptan Çiçek Dünyasına Hoşgeldiniz");
-//            emailDtoWithAttachment.setMsgBody("Toptan Çiçek Dünyasına Hoşgeldiniz. " +
-//                    "Kullanıcı Adınız: " + signupDto.getEmail() + "\n" +
-//                    "Parolanız: " + signupDto.getPassword().trim() + "\n" +
-//                    "Sisteme giriş yapabilirsiniz.");
-//
-//            communicationClient.sendMailWithAttachment(emailDtoWithAttachment);
-
             signupResponse.setStatus(1);
             signupResponse.setMessage("User signup is done.");
             return ResponseEntity.ok(signupResponse);
@@ -116,10 +112,6 @@ public class AuthService {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Boolean.FALSE);
         }
-    }
-
-    public List<User> getAllUser(Integer channelId) {
-        return userRepository.findAllByChannelIdOrderByIdDesc(channelId);
     }
 
     public ResponseEntity<String> forgotPassword(String email) {

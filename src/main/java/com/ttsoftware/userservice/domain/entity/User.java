@@ -36,8 +36,32 @@ public class User {
     @Column(name = "PASSWORD", length = 100)
     private String password;
 
-    @Column(name = "CHANNEL_ID")
-    private Integer channelId;
+    @Column(name = "PHONE", length = 15)
+    private String phone;
+
+    @Column(name = "PHONE_NUMBER", length = 15)
+    private String phoneNumber;
+
+    @Column(name = "COUNTRY", length = 50)
+    private String country;
+
+    @Column(name = "CITY", length = 50)
+    private String city;
+
+    @Column(name = "ADDRESS", length = 250)
+    private String address;
+
+    @Column(name = "DEALER_NAME", length = 100)
+    private String dealerName;
+
+    @Column(name = "TAX_NUMBER", length = 100)
+    private String taxNumber;
+
+    @Column(name = "TAX_OFFICES", length = 100)
+    private String taxOffice;
+
+    @Column(name = "DEALER", length = 100)
+    private boolean isDealer;
 
     @Column(name = "CREATED_DATE")
     private LocalDateTime createdDate;

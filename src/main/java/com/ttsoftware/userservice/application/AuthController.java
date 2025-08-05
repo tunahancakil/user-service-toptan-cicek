@@ -45,9 +45,4 @@ public class AuthController {
     public ResponseEntity<Boolean> validateToken(@RequestBody ValidateTokenDto token) {
         return authService.validateToken(token.getToken());
     }
-
-    @GetMapping(value = "/getAllUser", produces = APPLICATION_JSON_VALUE)
-    public List<UserDto> getAllUser(@RequestParam("channelId") Integer channelId) {
-        return userMapper.toBankInformationDtoList(authService.getAllUser(channelId));
-    }
 }
