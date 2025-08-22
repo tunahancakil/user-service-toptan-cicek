@@ -141,4 +141,13 @@ public class AuthService {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    public ResponseEntity<List<User>> getAllUser() {
+        try {
+            List<User> users = userRepository.findAll();
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 }

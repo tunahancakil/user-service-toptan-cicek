@@ -45,4 +45,9 @@ public class AuthController {
     public ResponseEntity<Boolean> validateToken(@RequestBody ValidateTokenDto token) {
         return authService.validateToken(token.getToken());
     }
+
+    @GetMapping("/getAllUsers")
+    public ResponseEntity<List<User>> getAllUsers() {
+        return authService.getAllUser();
+    }
 }
