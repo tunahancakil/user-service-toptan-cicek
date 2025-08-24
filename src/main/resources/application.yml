@@ -30,4 +30,4 @@ jwt:
 feign:
   communication:
     name: communication-service
-    url: http://165.232.76.29:8088
+    url: http://165.232.76.29:8081

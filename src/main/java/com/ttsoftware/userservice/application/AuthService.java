@@ -43,7 +43,7 @@ public class AuthService {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             final UserDetails userDetails = customUserDetailsService.loadUserByUsername(loginDto.getEmail());
-            final String token = jwtTokenUtil.generateToken(userDetails);
+            final String token = jwtTokenUtil.generateToken(userDetails, user.getEmail(), user.getRoles());
             return ResponseEntity.ok(new JwtResponse(token));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new JwtResponse(e.getMessage()));
@@ -53,6 +53,7 @@ public class AuthService {
 
     public ResponseEntity<SignupResponse> signupUserService(SignupDto signupDto) {
         User user = new User();
+        EmailDtoWithAttachment emailDtoWithAttachment = new EmailDtoWithAttachment();
         SignupResponse signupResponse = new SignupResponse();
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         try {
@@ -72,6 +73,34 @@ public class AuthService {
             user.setDealer(signupDto.isDealer());
             userRepository.save(user);
             signupResponse.setStatus(1);
+
+
+            emailDtoWithAttachment.setIsHtml(Boolean.TRUE);
+            emailDtoWithAttachment.setRecipient(signupDto.getEmail());
+            emailDtoWithAttachment.setUserName(signupDto.getDealerName());
+            emailDtoWithAttachment.setPassword(signupDto.getPassword().trim());
+            emailDtoWithAttachment.setSubject("Eren Tarım Sistemine Hoşgeldiniz");
+            emailDtoWithAttachment.setMsgBody("Merhaba " + signupDto.getDealerName() + ",\n" +
+                    "\n" +
+                    "Eren Tarım Ürünleri ailesine hoş geldiniz!\n" +
+                    "\n" +
+                    "Sisteme başarıyla kaydoldunuz. Aşağıda giriş bilgileriniz yer almaktadır:\n" +
+                    "Kullanıcı Adı: "+signupDto.getEmail()+"\n" +
+                    "Şifre: "+signupDto.getPassword()+"\n" +
+                    "\n" +
+                    "Sisteme giriş yaptıktan sonra profilinizi tamamlayabilir, ürünlerimizi inceleyebilir ve avantajlarımızdan yararlanmaya başlayabilirsiniz.\n" +
+                    "\n" +
+                    "Herhangi bir sorunuz olursa bizimle iletişime geçmekten çekinmeyin.\n" +
+                    "\n" +
+                    "Yeşil ve verimli bir gelecek için birlikteyiz!\n" +
+                    "\n" +
+                    "Saygılarımızla,  \n" +
+                    "Eren Tarım Ürünleri Ekibi  \n" +
+                    "https://erentarimurunleri.com/");
+
+            communicationClient.sendMailWithAttachment(emailDtoWithAttachment);
+
+
             signupResponse.setMessage("User signup is done.");
             return ResponseEntity.ok(signupResponse);
         } catch (Exception e) {
@@ -85,7 +114,7 @@ public class AuthService {
     public ResponseEntity<String> changePasswordService(ChangePasswordDto changePasswordDto) {
         try {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-            Optional<User> optionalUser = userRepository.findByUsernameOrEmail(changePasswordDto.getUserName(),changePasswordDto.getUserName());
+            Optional<User> optionalUser = userRepository.findByUsernameOrEmail(changePasswordDto.getUserName(), changePasswordDto.getUserName());
             if (optionalUser.isPresent()) {
                 User user = optionalUser.get();
                 if (changePasswordDto.getNewPassword().equals(changePasswordDto.getConfirmPassword())) {
@@ -121,13 +150,13 @@ public class AuthService {
             Optional<User> optionalUser = userRepository.findByEmail(email);
             if (optionalUser.isPresent()) {
                 User user = optionalUser.get();
-                user.setPassword(passwordEncoder.encode(user.getUsername()+"123"));
+                user.setPassword(passwordEncoder.encode(user.getUsername() + "123"));
                 userRepository.save(user);
 
                 emailDtoWithAttachment.setIsHtml(Boolean.TRUE);
                 emailDtoWithAttachment.setRecipient(user.getEmail());
                 emailDtoWithAttachment.setUserName(user.getUsername());
-                emailDtoWithAttachment.setPassword(user.getUsername()+"123");
+                emailDtoWithAttachment.setPassword(user.getUsername() + "123");
                 emailDtoWithAttachment.setSubject("Parola Sıfırlama");
                 emailDtoWithAttachment.setMsgBody("Parolanız sıfırlanmıştır mailde gelen bilgi ile sisteme giriş yapabilirsiniz.");
 

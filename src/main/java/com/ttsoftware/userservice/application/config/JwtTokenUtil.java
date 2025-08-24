@@ -3,8 +3,10 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
+import com.ttsoftware.userservice.domain.entity.Role;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -50,13 +52,18 @@ public class JwtTokenUtil implements Serializable {
         return expiration.before(new Date());
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDetails userDetails, String email, Set<Role> role) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role);
+        claims.put("email", email);
+        claims.put("user", userDetails);
         return doGenerateToken(claims, userDetails.getUsername());
     }
 
     private String doGenerateToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder().claims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis())).expiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
+        return Jwts.builder().claims(claims).setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
                 .signWith(SignatureAlgorithm.HS512, secretKey).compact();
     }
 

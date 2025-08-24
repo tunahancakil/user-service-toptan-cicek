@@ -16,4 +16,7 @@ public class Role {
 
     @Column(name = "NAME", length = 60)
     private String name;
+
+    @Column(name = "CODE", length = 60)
+    private String code;
 }
