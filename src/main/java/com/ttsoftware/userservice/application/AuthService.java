@@ -6,7 +6,9 @@ import com.ttsoftware.userservice.domain.dto.ChangePasswordDto;
 import com.ttsoftware.userservice.domain.dto.EmailDtoWithAttachment;
 import com.ttsoftware.userservice.domain.dto.LoginDto;
 import com.ttsoftware.userservice.domain.dto.SignupDto;
+import com.ttsoftware.userservice.domain.entity.Role;
 import com.ttsoftware.userservice.domain.entity.User;
+import com.ttsoftware.userservice.infrastructure.RoleRepository;
 import com.ttsoftware.userservice.infrastructure.UserRepository;
 import com.ttsoftware.userservice.model.JwtResponse;
 import com.ttsoftware.userservice.model.SignupResponse;
@@ -22,8 +24,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -31,6 +35,7 @@ import java.util.Optional;
 public class AuthService {
     private final JwtTokenUtil jwtTokenUtil;
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final CommunicationClient communicationClient;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService customUserDetailsService;
@@ -53,6 +58,7 @@ public class AuthService {
 
     public ResponseEntity<SignupResponse> signupUserService(SignupDto signupDto) {
         User user = new User();
+        Set<Role> role = Collections.singleton(roleRepository.findByName("ROLE_USER").orElseThrow(() -> new RuntimeException("Role not found")));
         EmailDtoWithAttachment emailDtoWithAttachment = new EmailDtoWithAttachment();
         SignupResponse signupResponse = new SignupResponse();
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -71,6 +77,7 @@ public class AuthService {
             user.setTaxNumber(signupDto.getTaxNumber());
             user.setTaxOffice(signupDto.getTaxOffice());
             user.setDealer(signupDto.isDealer());
+            user.setRoles(role);
             userRepository.save(user);
             signupResponse.setStatus(1);
 
@@ -99,8 +106,6 @@ public class AuthService {
                     "https://erentarimurunleri.com/");
 
             communicationClient.sendMailWithAttachment(emailDtoWithAttachment);
-
-
             signupResponse.setMessage("User signup is done.");
             return ResponseEntity.ok(signupResponse);
         } catch (Exception e) {
