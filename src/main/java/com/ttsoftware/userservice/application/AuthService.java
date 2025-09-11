@@ -176,6 +176,15 @@ public class AuthService {
         }
     }
 
+    public ResponseEntity<Long> getUserIDByEmail(String email) {
+        try {
+            Optional<User> user = userRepository.findByEmail(email);
+            return user.map(value -> ResponseEntity.ok(value.getId())).orElseGet(() -> ResponseEntity.badRequest().body(null));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
     public ResponseEntity<List<User>> getAllUser() {
         try {
             List<User> users = userRepository.findAll();

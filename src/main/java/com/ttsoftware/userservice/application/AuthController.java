@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
@@ -44,6 +42,11 @@ public class AuthController {
     @PostMapping("/validateToken")
     public ResponseEntity<Boolean> validateToken(@RequestBody ValidateTokenDto token) {
         return authService.validateToken(token.getToken());
+    }
+
+    @GetMapping("/getUserByEmail")
+    public ResponseEntity<Long> getUserIDByEmail(@RequestBody String email) {
+        return authService.getUserIDByEmail(email);
     }
 
     @GetMapping("/getAllUsers")
