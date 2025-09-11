@@ -44,13 +44,13 @@ public class AuthController {
         return authService.validateToken(token.getToken());
     }
 
-    @GetMapping("/getUserByEmail")
-    public ResponseEntity<Long> getUserIDByEmail(@RequestBody String email) {
+    @PostMapping("/getUserByEmail")
+    public ResponseEntity<Long> getUserIDByEmail(@RequestBody EmailQueryRequest email) {
         return authService.getUserIDByEmail(email);
     }
 
     @GetMapping("/getAllUsers")
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<List<UserDto>> getAllUsers() {
         return authService.getAllUser();
     }
 }

@@ -2,10 +2,7 @@ package com.ttsoftware.userservice.application;
 
 import com.ttsoftware.userservice.application.config.JwtTokenUtil;
 import com.ttsoftware.userservice.client.CommunicationClient;
-import com.ttsoftware.userservice.domain.dto.ChangePasswordDto;
-import com.ttsoftware.userservice.domain.dto.EmailDtoWithAttachment;
-import com.ttsoftware.userservice.domain.dto.LoginDto;
-import com.ttsoftware.userservice.domain.dto.SignupDto;
+import com.ttsoftware.userservice.domain.dto.*;
 import com.ttsoftware.userservice.domain.entity.Role;
 import com.ttsoftware.userservice.domain.entity.User;
 import com.ttsoftware.userservice.infrastructure.RoleRepository;
@@ -24,10 +21,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -176,19 +171,29 @@ public class AuthService {
         }
     }
 
-    public ResponseEntity<Long> getUserIDByEmail(String email) {
+    public ResponseEntity<Long> getUserIDByEmail(EmailQueryRequest email) {
         try {
-            Optional<User> user = userRepository.findByEmail(email);
+            Optional<User> user = userRepository.findByEmail(email.getEmail());
             return user.map(value -> ResponseEntity.ok(value.getId())).orElseGet(() -> ResponseEntity.badRequest().body(null));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
     }
 
-    public ResponseEntity<List<User>> getAllUser() {
+    public ResponseEntity<List<UserDto>> getAllUser() {
         try {
             List<User> users = userRepository.findAll();
-            return ResponseEntity.ok(users);
+            List<UserDto> userDtoList = users.stream().map(x -> {
+                UserDto userDto = new UserDto();
+                userDto.setId(x.getId());
+                userDto.setName(x.getName());
+                userDto.setSurname(x.getSurname());
+                userDto.setEmail(x.getEmail());
+                userDto.setUsername(x.getUsername());
+                userDto.setCreatedDate(x.getCreatedDate());
+                return userDto;
+            }).collect(Collectors.toList());
+            return ResponseEntity.ok(userDtoList);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
