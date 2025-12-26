@@ -14,13 +14,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class VerificationService {
     private final UserRepository userRepository;
     private final CommunicationClient communicationClient;
     private final VerificationTokenRepository tokenRepository;
-
-    private final String verificationBaseUrl = "https://your-domain.com/api/auth/confirm?token=";
 
     public VerificationService(VerificationTokenRepository tokenRepository,
                                UserRepository userRepository,
@@ -44,6 +41,7 @@ public class VerificationService {
         dto.setIsHtml(Boolean.TRUE);
         dto.setRecipient(user.getEmail());
         dto.setSubject("E-posta Doğrulama");
+        String verificationBaseUrl = "https://erentarimurunleri.com/api/auth/confirm?token=";
         dto.setMsgBody("Merhaba,\nLütfen e-posta adresinizi doğrulamak için aşağıdaki bağlantıya tıklayın:\n" + verificationBaseUrl + token.getToken());
         communicationClient.sendMailWithAttachment(dto);
     }
