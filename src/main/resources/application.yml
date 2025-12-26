@@ -17,9 +17,6 @@ spring:
       maxLifetime: 600000
       maximumPoolSize: 3
       minimumIdle: 5
-  liquibase:
-    enabled: true
-    change-log: classpath:db/changelog/test/changelog-master.yml
 
 server:
   port: 8089

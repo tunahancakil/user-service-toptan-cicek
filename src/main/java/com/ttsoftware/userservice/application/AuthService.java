@@ -32,6 +32,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final CommunicationClient communicationClient;
+    private final VerificationService verificationService;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService customUserDetailsService;
 
@@ -39,7 +40,11 @@ public class AuthService {
         try {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             User user = userRepository.findByEmail(loginDto.getEmail()).orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + loginDto.getEmail()));
-            passwordEncoder.matches(loginDto.getPassword(), user.getPassword());
+
+            if (!user.isEnabled()) {
+                return ResponseEntity.badRequest().body(new JwtResponse("Email not verified."));
+            }
+
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             final UserDetails userDetails = customUserDetailsService.loadUserByUsername(loginDto.getEmail());
@@ -73,36 +78,42 @@ public class AuthService {
             user.setTaxOffice(signupDto.getTaxOffice());
             user.setDealer(signupDto.isDealer());
             user.setRoles(role);
+            user.setEnabled(false);
             userRepository.save(user);
+
+            verificationService.sendVerificationEmail(user);
+
             signupResponse.setStatus(1);
-
-
-            emailDtoWithAttachment.setIsHtml(Boolean.TRUE);
-            emailDtoWithAttachment.setRecipient(signupDto.getEmail());
-            emailDtoWithAttachment.setUserName(signupDto.getDealerName());
-            emailDtoWithAttachment.setPassword(signupDto.getPassword().trim());
-            emailDtoWithAttachment.setSubject("Eren Tarım Sistemine Hoşgeldiniz");
-            emailDtoWithAttachment.setMsgBody("Merhaba " + signupDto.getDealerName() + ",\n" +
-                    "\n" +
-                    "Eren Tarım Ürünleri ailesine hoş geldiniz!\n" +
-                    "\n" +
-                    "Sisteme başarıyla kaydoldunuz. Aşağıda giriş bilgileriniz yer almaktadır:\n" +
-                    "Kullanıcı Adı: "+signupDto.getEmail()+"\n" +
-                    "Şifre: "+signupDto.getPassword()+"\n" +
-                    "\n" +
-                    "Sisteme giriş yaptıktan sonra profilinizi tamamlayabilir, ürünlerimizi inceleyebilir ve avantajlarımızdan yararlanmaya başlayabilirsiniz.\n" +
-                    "\n" +
-                    "Herhangi bir sorunuz olursa bizimle iletişime geçmekten çekinmeyin.\n" +
-                    "\n" +
-                    "Yeşil ve verimli bir gelecek için birlikteyiz!\n" +
-                    "\n" +
-                    "Saygılarımızla,  \n" +
-                    "Eren Tarım Ürünleri Ekibi  \n" +
-                    "https://erentarimurunleri.com/");
-
-            communicationClient.sendMailWithAttachment(emailDtoWithAttachment);
-            signupResponse.setMessage("User signup is done.");
+            signupResponse.setMessage("User signup is done. Please verify your email before login.");
             return ResponseEntity.ok(signupResponse);
+
+
+//            emailDtoWithAttachment.setIsHtml(Boolean.TRUE);
+//            emailDtoWithAttachment.setRecipient(signupDto.getEmail());
+//            emailDtoWithAttachment.setUserName(signupDto.getDealerName());
+//            emailDtoWithAttachment.setPassword(signupDto.getPassword().trim());
+//            emailDtoWithAttachment.setSubject("Eren Tarım Sistemine Hoşgeldiniz");
+//            emailDtoWithAttachment.setMsgBody("Merhaba " + signupDto.getDealerName() + ",\n" +
+//                    "\n" +
+//                    "Eren Tarım Ürünleri ailesine hoş geldiniz!\n" +
+//                    "\n" +
+//                    "Sisteme başarıyla kaydoldunuz. Aşağıda giriş bilgileriniz yer almaktadır:\n" +
+//                    "Kullanıcı Adı: "+signupDto.getEmail()+"\n" +
+//                    "Şifre: "+signupDto.getPassword()+"\n" +
+//                    "\n" +
+//                    "Sisteme giriş yaptıktan sonra profilinizi tamamlayabilir, ürünlerimizi inceleyebilir ve avantajlarımızdan yararlanmaya başlayabilirsiniz.\n" +
+//                    "\n" +
+//                    "Herhangi bir sorunuz olursa bizimle iletişime geçmekten çekinmeyin.\n" +
+//                    "\n" +
+//                    "Yeşil ve verimli bir gelecek için birlikteyiz!\n" +
+//                    "\n" +
+//                    "Saygılarımızla,  \n" +
+//                    "Eren Tarım Ürünleri Ekibi  \n" +
+//                    "https://erentarimurunleri.com/");
+//
+//            communicationClient.sendMailWithAttachment(emailDtoWithAttachment);
+//            signupResponse.setMessage("User signup is done.");
+//            return ResponseEntity.ok(signupResponse);
         } catch (Exception e) {
             signupResponse.setStatus(0);
             signupResponse.setErrorMessage(e.getMessage());

@@ -64,6 +64,9 @@ public class User {
     @Column(name = "DEALER", length = 100)
     private boolean isDealer;
 
+    @Column(name = "IS_ENABLED")
+    private boolean isEnabled;
+
     @Column(name = "CREATED_DATE")
     private LocalDateTime createdDate;
 
